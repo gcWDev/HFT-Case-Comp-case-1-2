@@ -49,7 +49,7 @@ def arbitrageTest(bidDic, askDic, s, minSpread):
     askN = askDic['ticker']
     q = min(bidQ, askQ, 10000)
     if bid-ask > minSpread:
-        print(f"Buy {bidN} @ {ask}\n sell {askN} @ {bid}")
+        print(f"Buy {askN}\n sell {bidN}")
         time.sleep(4)
 
 
@@ -63,16 +63,11 @@ def main():
             flag = caseStatus(s)
             crzyMBid, crzyMAsk = getOrderBook(s, 'CRZY_M', book)
             crzyABid, crzyAAsk = getOrderBook(s, 'CRZY_A', book)
-            tameMBid, tameMAsk = getOrderBook(s, 'TAME_M', book)
-            tameABid, tameAAsk = getOrderBook(s, 'TAME_A', book)
             # Test for cross profitability
-            arbitrageTest(crzyABid, crzyMAsk, s, minSpread)
+            arbitrageTest(crzyMBid, crzyAAsk, s, minSpread)
             # Test for cross profitability
             arbitrageTest(crzyABid, crzyMAsk, s, minSpread)
             # # Test for cross profitability
-            arbitrageTest(tameMAsk, tameABid, s, minSpread)
-            # # Test for cross profitability
-            arbitrageTest(tameAAsk, tameMBid, s, minSpread)
             print('monitoring')
 
 
