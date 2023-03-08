@@ -68,11 +68,11 @@ def main():
             # Test for cross profitability
             arbitrageTest(crzyABid, crzyMAsk, s, minSpread)
             # Test for cross profitability
-            # arbitrageTest(crzyABid, crzyMAsk, s, minSpread)
+            arbitrageTest(crzyABid, crzyMAsk, s, minSpread)
             # # Test for cross profitability
-            # arbitrageTest(tameMAsk, tameABid, s, minSpread)
+            arbitrageTest(tameMAsk, tameABid, s, minSpread)
             # # Test for cross profitability
-            # arbitrageTest(tameAAsk, tameMBid, s, minSpread)
+            arbitrageTest(tameAAsk, tameMBid, s, minSpread)
             print('monitoring')
 
 
