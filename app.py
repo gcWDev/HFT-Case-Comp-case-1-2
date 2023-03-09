@@ -5,6 +5,7 @@ import multiprocessing
 API_KEY = {'X-API-key': 'C98IF93B'}
 
 # globals
+# Add logic to get the average bid/ask size over the past 5 orders
 
 case = 'http://localhost:9999/v1/case'
 order = "http://localhost:9999/v1/orders"
@@ -24,7 +25,7 @@ def caseStatus(session):
     status = rDic['status']
     tick = rDic['tick']
     if status == 'ACTIVE' and tick != 299:
-        return True
+        return True, tick
 
     else:
         time.sleep(2)
@@ -55,7 +56,8 @@ def deleteOrderBook(session, ticker):
 
 
 # Get security order book
-def getOrderBook(session, ticker, book):
+def getOrderBook(session, ticker):
+    book = 'http://localhost:9999/v1/securities/book'
     payload = {'ticker': ticker}
     resp = session.get(book, params=payload)
     try:
@@ -99,20 +101,35 @@ def arbitrageTest(bidDic, askDic, altDic, s, minSpread):
             speedBump(transactionTime)
 
 
+def intLogic(s, tick):
+    bidDic, askDic = getOrderBook(s, tick)
+    bid = bidDic['price']
+    ask = askDic['price']
+    bidQ = bidDic['quantity']
+    askQ = askDic['quantity']
+    bidN = bidDic['ticker']
+    askN = askDic['ticker']
+    temp = s.post(order, params={
+        'ticker': askN, 'type': 'LIMIT', 'quantity': 1, 'action': 'BUY', 'price': 0})
+    time.sleep(1)
+
+
 def main():
     with r.Session() as s:
         flag = True
         s.headers.update(API_KEY)
-        book = 'http://localhost:9999/v1/securities/book'
-        minSpread = 0.03
+        minSpread = 0.02
         while flag:
-            flag = caseStatus(s)
-            crzyMBid, crzyMAsk = getOrderBook(s, 'CRZY_M', book)
-            crzyABid, crzyAAsk = getOrderBook(s, 'CRZY_A', book)
+            flag, tick = caseStatus(s)
+            crzyMBid, crzyMAsk = getOrderBook(s, 'CRZY_M')
+            crzyABid, crzyAAsk = getOrderBook(s, 'CRZY_A')
             # Test for cross profitability
             arbitrageTest(crzyMBid, crzyAAsk, crzyABid, s, minSpread)
             # Test for cross profitability
             arbitrageTest(crzyABid, crzyMAsk, crzyMBid, s, minSpread)
+            # Market destroy
+            if tick % 60 == 0:
+                intLogic(s, 'CRZY_M')
             print('monitoring')
 
 

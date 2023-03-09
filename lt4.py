@@ -28,6 +28,15 @@ def deleteOrderBook(session, ticker):
     pass
 
 
+def get_tender(s):
+    resp = s.get('http://localhost:9999/v1/tenders')
+    print(resp.json())
+    if resp.ok:
+        tenders = resp.json()
+        print(tenders)
+        time.sleep(10)
+
+
 def getOrderBook(session, ticker, book):
     payload = {'ticker': ticker}
     resp = session.get(book, params=payload)
@@ -64,10 +73,13 @@ def main():
             crzyMBid, crzyMAsk = getOrderBook(s, 'CRZY_M', book)
             crzyABid, crzyAAsk = getOrderBook(s, 'CRZY_A', book)
             # Test for cross profitability
-            arbitrageTest(crzyMBid, crzyAAsk, s, minSpread)
+            # arbitrageTest(crzyMBid, crzyAAsk, s, minSpread)
             # Test for cross profitability
-            arbitrageTest(crzyABid, crzyMAsk, s, minSpread)
+            # arbitrageTest(crzyABid, crzyMAsk, s, minSpread)
             # # Test for cross profitability
+            # Test for tender offers
+            get_tender(s)
+
             print('monitoring')
 
 
