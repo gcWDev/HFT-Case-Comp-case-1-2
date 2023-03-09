@@ -69,6 +69,21 @@ def getOrderBook(session, ticker):
         caseStatus(session)
 
 
+def checkLiquidity(s, bidN, direction, test):
+    book = 'http://localhost:9999/v1/securities/book'
+    payload = {'ticker': bidN}
+    resp = s.get(book, params=payload)
+    liquidity = 0
+    if resp.ok:
+        book = resp.json()
+        for i in range(5):
+            liquidity += book[direction][i]['quantity']
+    if liquidity//5 > test:
+        return True
+    else:
+        return False
+
+
 # Test for market crossing opportunities
 def arbitrageTest(bidDic, askDic, altDic, s, minSpread):
     start = time.time()
@@ -85,20 +100,23 @@ def arbitrageTest(bidDic, askDic, altDic, s, minSpread):
     # q = min(bidQ, askQ, 5000)
     # q = min(bidQ, askQ, 2500)
     # q = min(bidQ, askQ, 500)
-    if bid-ask > minSpread:
-        # temp = s.post(order, params={
-        #     'ticker': askN, 'type': 'LIMIT', 'quantity': q, 'action': 'BUY', 'price': altPrice+0.03})
-        # s.post(order, params={
-        #     'ticker': bidN, 'type': 'MARKET', 'quantity': q, 'action': 'SELL'})
-        # print('Orders executed')
-        temp = s.post(order, params={
-            'ticker': askN, 'type': 'MARKET', 'quantity': q, 'action': 'BUY'})
-        s.post(order, params={
-            'ticker': bidN, 'type': 'MARKET', 'quantity': q, 'action': 'SELL'})
-        print('Orders executed')
-        if temp.ok:
-            transactionTime = time.time() - start
-            speedBump(transactionTime)
+    flag = checkLiquidity(s, bidN, 'bids', q)
+    flag = checkLiquidity(s, askN, 'asks', q)
+    if flag:
+        if bid-ask > minSpread:
+            # temp = s.post(order, params={
+            #     'ticker': askN, 'type': 'LIMIT', 'quantity': q, 'action': 'BUY', 'price': altPrice+0.03})
+            # s.post(order, params={
+            #     'ticker': bidN, 'type': 'MARKET', 'quantity': q, 'action': 'SELL'})
+            # print('Orders executed')
+            temp = s.post(order, params={
+                'ticker': askN, 'type': 'MARKET', 'quantity': q, 'action': 'BUY'})
+            s.post(order, params={
+                'ticker': bidN, 'type': 'MARKET', 'quantity': q, 'action': 'SELL'})
+            print('Orders executed')
+            if temp.ok:
+                transactionTime = time.time() - start
+                speedBump(transactionTime)
 
 
 def intLogic(s, tick):
@@ -110,7 +128,7 @@ def intLogic(s, tick):
     bidN = bidDic['ticker']
     askN = askDic['ticker']
     temp = s.post(order, params={
-        'ticker': askN, 'type': 'LIMIT', 'quantity': 1, 'action': 'BUY', 'price': 0})
+        'ticker': askN, 'type': 'LIMIT', 'quantity': 1, 'action': 'BUY', 'price': bid+2})
     time.sleep(1)
 
 
